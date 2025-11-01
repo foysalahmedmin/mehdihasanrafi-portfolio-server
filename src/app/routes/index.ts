@@ -1,5 +1,6 @@
 import express from 'express';
 import authRoutes from '../modules/auth/auth.route';
+import ContactRoutes from '../modules/contact/contact.route';
 import NewsRoutes from '../modules/news/news.route';
 import ProjectRoutes from '../modules/project/project.route';
 import PublicationRoutes from '../modules/publication/publication.route';
@@ -27,6 +28,10 @@ const moduleRoutes = [
   {
     path: '/publications',
     route: PublicationRoutes,
+  },
+  {
+    path: '/contact',
+    route: ContactRoutes,
   },
 ];
 

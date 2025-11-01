@@ -24,4 +24,3 @@ export interface TProjectDocument extends TProject, Document {
 }
 
 export type TProjectModel = Model<TProjectDocument>;
-
