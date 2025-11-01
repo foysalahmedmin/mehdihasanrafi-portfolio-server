@@ -54,4 +54,3 @@ export const Contact = mongoose.model<TContactDocument, TContactModel>(
   'Contact',
   contactSchema,
 );
-

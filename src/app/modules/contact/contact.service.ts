@@ -1,10 +1,11 @@
-import httpStatus from 'http-status';
 import config from '../../config';
 import { sendEmail } from '../../utils/sendEmail';
 import { Contact } from './contact.model';
 import { TContact, TCreateContact } from './contact.type';
 
-export const createContact = async (payload: TCreateContact): Promise<TContact> => {
+export const createContact = async (
+  payload: TCreateContact,
+): Promise<TContact> => {
   // Save to database
   const created_contact = await Contact.create(payload);
 
@@ -36,4 +37,3 @@ export const createContact = async (payload: TCreateContact): Promise<TContact> 
 
   return created_contact.toObject();
 };
-

@@ -1,21 +1,26 @@
 import express from 'express';
-import authRoutes from '../modules/auth/auth.route';
+import AuthRoutes from '../modules/auth/auth.route';
 import ContactRoutes from '../modules/contact/contact.route';
+import GalleryRoutes from '../modules/gallery/gallery.route';
 import NewsRoutes from '../modules/news/news.route';
 import ProjectRoutes from '../modules/project/project.route';
 import PublicationRoutes from '../modules/publication/publication.route';
-import userRoutes from '../modules/user/user.route';
+import UserRoutes from '../modules/user/user.route';
 
 const router = express.Router();
 
 const moduleRoutes = [
   {
     path: '/auth',
-    route: authRoutes,
+    route: AuthRoutes,
   },
   {
     path: '/user',
-    route: userRoutes,
+    route: UserRoutes,
+  },
+  {
+    path: '/contact',
+    route: ContactRoutes,
   },
   {
     path: '/news',
@@ -30,8 +35,8 @@ const moduleRoutes = [
     route: PublicationRoutes,
   },
   {
-    path: '/contact',
-    route: ContactRoutes,
+    path: '/gallery',
+    route: GalleryRoutes,
   },
 ];
 
