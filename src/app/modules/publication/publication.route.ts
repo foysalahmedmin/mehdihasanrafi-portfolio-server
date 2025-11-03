@@ -97,4 +97,3 @@ router.post(
 const PublicationRoutes = router;
 
 export default PublicationRoutes;
-

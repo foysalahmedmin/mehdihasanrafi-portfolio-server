@@ -8,12 +8,9 @@ import * as GalleryValidations from './gallery.validation';
 
 const router = express.Router();
 
-// GET - Public
-router.get('/public', GalleryControllers.getPublicGallery);
-
-// GET - Admin
-router.get('/', auth('admin', 'super-admin'), GalleryControllers.getAllGallery);
-router.get('/:id', auth('admin', 'super-admin'), GalleryControllers.getGalleryById);
+// GET
+router.get('/', GalleryControllers.getAllGallery);
+router.get('/:id', GalleryControllers.getGalleryById);
 
 // POST
 router.post(
@@ -25,7 +22,13 @@ router.post(
       folder: folderMapWithYearMonth.image,
       size: 10_000_000, // 10MB
       maxCount: 1,
-      allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'],
+      allowedTypes: [
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/webp',
+        'image/gif',
+      ],
     },
     {
       name: 'video',
@@ -49,7 +52,13 @@ router.patch(
       folder: folderMapWithYearMonth.image,
       size: 10_000_000, // 10MB
       maxCount: 1,
-      allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'],
+      allowedTypes: [
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/webp',
+        'image/gif',
+      ],
     },
     {
       name: 'video',
@@ -80,4 +89,3 @@ router.delete(
 const GalleryRoutes = router;
 
 export default GalleryRoutes;
-

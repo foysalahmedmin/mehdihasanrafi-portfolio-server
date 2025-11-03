@@ -6,13 +6,13 @@ import * as GalleryServices from './gallery.service';
 export const createGallery = catchAsync(async (req, res) => {
   const files = req.files as Record<string, Express.Multer.File[]>;
 
-  const imageFile = files['image']?.[0] || '';
+  const imageFile = files?.['image']?.[0] || '';
   const imageFilePath = imageFile ? imageFile.path.replace(/\\/g, '/') : '';
   const imagePath = imageFilePath
     ? imageFilePath.split('/').slice(-3).join('/')
     : '';
 
-  const videoFile = files['video']?.[0] || '';
+  const videoFile = files?.['video']?.[0] || '';
   const videoFilePath = videoFile ? videoFile.path.replace(/\\/g, '/') : '';
   const videoPath = videoFilePath
     ? videoFilePath.split('/').slice(-3).join('/')
@@ -32,17 +32,6 @@ export const createGallery = catchAsync(async (req, res) => {
     success: true,
     message: 'Gallery item created successfully',
     data: result,
-  });
-});
-
-export const getPublicGallery = catchAsync(async (req, res) => {
-  const result = await GalleryServices.getPublicGallery(req.query);
-  sendResponse(res, {
-    status: httpStatus.OK,
-    success: true,
-    message: 'Gallery retrieved successfully',
-    data: result.data,
-    meta: result.meta,
   });
 });
 

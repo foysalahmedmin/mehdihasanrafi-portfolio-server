@@ -13,7 +13,10 @@ export const createProject = async (payload: TProject): Promise<TProject> => {
 };
 
 export const getPublicProject = async (slug: string): Promise<TProject> => {
-  const result = await Project.findOne({ slug: slug, status: 'published' }).lean();
+  const result = await Project.findOne({
+    slug: slug,
+    status: 'published',
+  }).lean();
 
   if (!result) {
     throw new AppError(httpStatus.NOT_FOUND, 'Project not found');
@@ -27,10 +30,7 @@ export const getPublicBulkProjects = async (
   data: TProject[];
   meta: { total: number; page: number; limit: number };
 }> => {
-  const ProjectQuery = new AppQuery<TProject>(
-    Project.find({ status: 'published' }),
-    query,
-  )
+  const ProjectQuery = new AppQuery<TProject>(Project.find(), query)
     .search(['title', 'description'])
     .filter()
     .sort()
@@ -174,4 +174,3 @@ export const deleteBulkProjectsPermanent = async (
     not_found_ids: notFoundIds,
   };
 };
-

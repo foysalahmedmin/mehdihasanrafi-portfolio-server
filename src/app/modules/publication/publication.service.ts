@@ -34,10 +34,7 @@ export const getPublicBulkPublications = async (
   data: TPublication[];
   meta: { total: number; page: number; limit: number };
 }> => {
-  const PublicationQuery = new AppQuery<TPublication>(
-    Publication.find({ status: 'published' }),
-    query,
-  )
+  const PublicationQuery = new AppQuery<TPublication>(Publication.find(), query)
     .search(['title', 'abstract', 'description'])
     .filter()
     .sort()
@@ -165,9 +162,7 @@ export const updateBulkPublications = async (
   };
 };
 
-export const deletePublicationPermanent = async (
-  id: string,
-): Promise<void> => {
+export const deletePublicationPermanent = async (id: string): Promise<void> => {
   const publication = await Publication.findById(id)
     .setOptions({ bypassDeleted: true })
     .lean();
@@ -210,4 +205,3 @@ export const deleteBulkPublicationsPermanent = async (
     not_found_ids: notFoundIds,
   };
 };
-

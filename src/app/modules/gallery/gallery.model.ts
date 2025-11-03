@@ -80,4 +80,3 @@ export const Gallery = mongoose.model<TGalleryDocument, TGalleryModel>(
   'Gallery',
   gallerySchema,
 );
-

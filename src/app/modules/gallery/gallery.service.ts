@@ -12,39 +12,6 @@ export const createGallery = async (
   return created_gallery.toObject();
 };
 
-export const getPublicGallery = async (
-  query: Record<string, unknown>,
-): Promise<{
-  data: TGallery[];
-  meta: { total: number; page: number; limit: number };
-}> => {
-  const GalleryQuery = new AppQuery<TGallery>(
-    Gallery.find({ is_active: true }),
-    query,
-  )
-    .search(['caption'])
-    .filter()
-    .sort()
-    .paginate()
-    .fields([
-      'caption',
-      'media_type',
-      'image_url',
-      'image',
-      'video_url',
-      'video',
-      'order',
-      'is_active',
-      'created_at',
-      'updated_at',
-    ])
-    .tap((q) => q.lean());
-
-  const result = await GalleryQuery.execute();
-
-  return result;
-};
-
 export const getAllGallery = async (
   query: Record<string, unknown>,
 ): Promise<{

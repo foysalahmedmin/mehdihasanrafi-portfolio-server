@@ -134,7 +134,7 @@ const publicationSchema = new Schema<TPublicationDocument>(
   },
 );
 
-publicationSchema.index({ slug: 1 }, { unique: true });
+publicationSchema.index({ slug: 1 });
 publicationSchema.index({ title: 1 });
 publicationSchema.index({ status: 1 });
 publicationSchema.index({ is_featured: 1 });
@@ -152,8 +152,7 @@ publicationSchema.methods.toJSON = function () {
   return Publication;
 };
 
-export const Publication = mongoose.model<TPublicationDocument, TPublicationModel>(
-  'Publication',
-  publicationSchema,
-);
-
+export const Publication = mongoose.model<
+  TPublicationDocument,
+  TPublicationModel
+>('Publication', publicationSchema);

@@ -13,7 +13,7 @@ export const createNews = async (payload: TNews): Promise<TNews> => {
 };
 
 export const getPublicNews = async (slug: string): Promise<TNews> => {
-  const result = await News.findOne({ slug: slug, status: 'published' }).lean();
+  const result = await News.findOne({ slug: slug }).lean();
 
   if (!result) {
     throw new AppError(httpStatus.NOT_FOUND, 'News not found');
@@ -27,10 +27,7 @@ export const getPublicBulkNews = async (
   data: TNews[];
   meta: { total: number; page: number; limit: number };
 }> => {
-  const NewsQuery = new AppQuery<TNews>(
-    News.find({ status: 'published' }),
-    query,
-  )
+  const NewsQuery = new AppQuery<TNews>(News.find(), query)
     .search(['title', 'description'])
     .filter()
     .sort()

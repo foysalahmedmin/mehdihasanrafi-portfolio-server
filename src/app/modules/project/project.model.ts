@@ -88,7 +88,7 @@ const projectSchema = new Schema<TProjectDocument>(
   },
 );
 
-projectSchema.index({ slug: 1 }, { unique: true });
+projectSchema.index({ slug: 1 });
 projectSchema.index({ title: 1 });
 projectSchema.index({ status: 1 });
 projectSchema.index({ is_featured: 1 });
@@ -107,4 +107,3 @@ export const Project = mongoose.model<TProjectDocument, TProjectModel>(
   'Project',
   projectSchema,
 );
-

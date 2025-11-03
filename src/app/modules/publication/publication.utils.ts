@@ -72,4 +72,3 @@ export const getFileConfigByType = (type: string) => {
       };
   }
 };
-

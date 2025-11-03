@@ -42,7 +42,9 @@ export const createNews = catchAsync(async (req, res) => {
 
 export const getPublicNews = catchAsync(async (req, res) => {
   const { slug } = req.params;
+  
   const result = await NewsServices.getPublicNews(slug);
+  console
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,

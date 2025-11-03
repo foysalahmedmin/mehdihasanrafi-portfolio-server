@@ -39,7 +39,7 @@ export const signin = async (payload: TSignin) => {
     name: user.name,
     email: user.email,
     role: user.role,
-    ...(user.image && { image: user.image }),
+    ...(user?.image && { image: user?.image }),
   };
 
   const accessToken = createToken(
@@ -81,7 +81,7 @@ export const signup = async (payload: TSignup) => {
     name: user.name,
     email: user.email,
     role: user.role,
-    ...(user.image && { image: user.image }),
+    ...(user?.image && { image: user?.image }),
   };
 
   const accessToken = createToken(
@@ -139,7 +139,7 @@ export const refreshToken = async (token: string) => {
     name: user.name,
     email: user.email,
     role: user.role,
-    ...(user.image && { image: user.image }),
+    ...(user?.image && { image: user?.image }),
   };
 
   const accessToken = createToken(
