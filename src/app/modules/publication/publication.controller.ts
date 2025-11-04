@@ -19,9 +19,7 @@ export const createPublication = catchAsync(async (req, res) => {
   // PDF filename
   const pdfFile = files['pdf']?.[0] || '';
   const pdfFilePath = pdfFile ? pdfFile.path.replace(/\\/g, '/') : '';
-  const pdfPath = pdfFilePath
-    ? pdfFilePath.split('/').slice(-3).join('/')
-    : '';
+  const pdfPath = pdfFilePath ? pdfFilePath.split('/').slice(-3).join('/') : '';
 
   // Multiple images filenames
   const imagesFiles = files['images'] || [];
@@ -86,9 +84,7 @@ export const updatePublication = catchAsync(async (req, res) => {
   // PDF filename
   const pdfFile = files['pdf']?.[0] || '';
   const pdfFilePath = pdfFile ? pdfFile.path.replace(/\\/g, '/') : '';
-  const pdfPath = pdfFilePath
-    ? pdfFilePath.split('/').slice(-3).join('/')
-    : '';
+  const pdfPath = pdfFilePath ? pdfFilePath.split('/').slice(-3).join('/') : '';
 
   // Multiple images filenames
   const imagesFiles = files['images'] || [];
@@ -140,8 +136,7 @@ export const deletePublicationPermanent = catchAsync(async (req, res) => {
 
 export const deleteBulkPublicationsPermanent = catchAsync(async (req, res) => {
   const { ids } = req.body;
-  const result =
-    await PublicationServices.deleteBulkPublicationsPermanent(ids);
+  const result = await PublicationServices.deleteBulkPublicationsPermanent(ids);
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
@@ -151,4 +146,3 @@ export const deleteBulkPublicationsPermanent = catchAsync(async (req, res) => {
     },
   });
 });
-

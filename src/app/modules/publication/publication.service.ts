@@ -171,9 +171,11 @@ export const deletePublicationPermanent = async (id: string): Promise<void> => {
   }
 
   // === File cleanup using utility ===
-  deleteFiles(publication?.thumbnail, 'publications/images');
-  deleteFiles(publication?.pdf, 'publications/pdfs');
-  deleteFiles(publication?.images, 'publications/images');
+  if (publication?.thumbnail)
+    deleteFiles(publication.thumbnail, 'publications/images');
+  if (publication?.pdf) deleteFiles(publication.pdf, 'publications/pdfs');
+  if (publication?.images)
+    deleteFiles(publication.images, 'publications/images');
 
   await Publication.findByIdAndDelete(id).setOptions({ bypassDeleted: true });
 };
