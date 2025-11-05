@@ -20,6 +20,8 @@ export const initializeSocket = async (
           'http://localhost:8080',
           'http://localhost:5000',
           'http://localhost:5005',
+          'http://mehdihasanrafi.com',
+          'http://www.mehdihasanrafi.com',
           'https://mehdihasanrafi.com',
           'https://www.mehdihasanrafi.com',
         ],

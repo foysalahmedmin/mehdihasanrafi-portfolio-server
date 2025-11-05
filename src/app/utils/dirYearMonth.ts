@@ -9,7 +9,8 @@ export const dirYearMonth = (
   const year = now.getFullYear().toString();
   const month = String(now.getMonth() + 1).padStart(2, '0');
 
-  const suffix = `${year}/${month}`;
+  // const suffix = `${year}/${month}`;
+  const suffix = '';
 
   return { year, month, suffix };
 };
