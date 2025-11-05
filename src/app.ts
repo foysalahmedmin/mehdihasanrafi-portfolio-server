@@ -23,11 +23,11 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: [
-      'http://localhost:5000',
       'http://localhost:8080',
-      'http://localhost:3000',
+      'http://localhost:5000',
+      'http://localhost:5005',
       'https://mehdihasanrafi.com',
-      'https://admin.mehdihasanrafi.com',
+      'https://www.mehdihasanrafi.com',
     ],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
