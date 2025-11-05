@@ -18,12 +18,10 @@ export const initializeSocket = async (
       cors: {
         origin: [
           'http://localhost:8080',
-          'http://localhost:3000',
-          'http://localhost:3001',
-          'https://z-news.vercel.app',
-          'https://z-news-server.vercel.app',
-          'http://admin.dainikeidin.com',
-          'http://test.dainikeidin.com',
+          'http://localhost:5000',
+          'http://localhost:5005',
+          'https://mehdihasanrafi.com',
+          'https://www.mehdihasanrafi.com',
         ],
         methods: ['GET', 'POST'],
         credentials: true,
