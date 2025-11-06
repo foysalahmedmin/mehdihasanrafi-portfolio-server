@@ -19,7 +19,6 @@ export const getPublicPublication = async (
 ): Promise<TPublication> => {
   const result = await Publication.findOne({
     slug: slug,
-    status: 'published',
   }).lean();
 
   if (!result) {

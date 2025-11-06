@@ -15,7 +15,6 @@ export const createProject = async (payload: TProject): Promise<TProject> => {
 export const getPublicProject = async (slug: string): Promise<TProject> => {
   const result = await Project.findOne({
     slug: slug,
-    status: 'published',
   }).lean();
 
   if (!result) {
