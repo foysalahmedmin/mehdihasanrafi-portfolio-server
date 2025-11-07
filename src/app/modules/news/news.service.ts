@@ -46,6 +46,8 @@ export const getPublicBulkNews = async (
       'status',
       'published_at',
       'is_featured',
+      'read_time',
+      'link',
     ])
     .tap((q) => q.lean());
 
