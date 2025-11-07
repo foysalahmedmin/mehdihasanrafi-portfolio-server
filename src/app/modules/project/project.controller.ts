@@ -134,4 +134,3 @@ export const deleteBulkProjectsPermanent = catchAsync(async (req, res) => {
     },
   });
 });
-
