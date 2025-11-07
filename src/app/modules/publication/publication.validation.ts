@@ -31,7 +31,7 @@ export const createPublicationValidationSchema = z.object({
     slug: z.string().trim().min(1, 'Slug is required'),
     link: z.string().trim().url('Invalid link URL').optional(),
     description: z.string().trim().optional(),
-    abstract: z.string().trim().min(1, 'Abstract is required'),
+    abstract: z.string().trim().optional(),
     content: z.string().trim().optional(),
     venue: z.string().trim().optional(),
     publisher: z.string().trim().optional(),

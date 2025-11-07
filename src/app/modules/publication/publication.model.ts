@@ -27,7 +27,6 @@ const publicationSchema = new Schema<TPublicationDocument>(
 
     abstract: {
       type: String,
-      required: true,
       trim: true,
     },
 
