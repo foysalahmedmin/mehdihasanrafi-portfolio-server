@@ -33,12 +33,10 @@ const publicationSchema = new Schema<TPublicationDocument>(
 
     content: {
       type: String,
-      required: true,
     },
 
     venue: {
       type: String,
-      required: true,
       trim: true,
     },
 

@@ -8,9 +8,9 @@ export type TPublication = {
   link?: string;
   thumbnail?: string;
   read_time?: string;
-  venue: string;
+  venue?: string;
   abstract: string;
-  content: string;
+  content?: string;
   publisher?: string;
   journal?: string;
   volume?: string;
@@ -33,4 +33,3 @@ export interface TPublicationDocument extends TPublication, Document {
 }
 
 export type TPublicationModel = Model<TPublicationDocument>;
-

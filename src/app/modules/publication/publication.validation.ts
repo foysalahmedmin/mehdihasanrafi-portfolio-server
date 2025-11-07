@@ -32,8 +32,8 @@ export const createPublicationValidationSchema = z.object({
     link: z.string().trim().url('Invalid link URL').optional(),
     description: z.string().trim().optional(),
     abstract: z.string().trim().min(1, 'Abstract is required'),
-    content: z.string().trim().min(1, 'Content is required'),
-    venue: z.string().trim().min(1, 'Venue is required'),
+    content: z.string().trim().optional(),
+    venue: z.string().trim().optional(),
     publisher: z.string().trim().optional(),
     journal: z.string().trim().optional(),
     volume: z.string().trim().optional(),
@@ -132,4 +132,3 @@ export const bulkPublicationOperationValidationSchema = z.object({
     ids: z.array(idSchema).nonempty('At least one publication ID is required'),
   }),
 });
-
