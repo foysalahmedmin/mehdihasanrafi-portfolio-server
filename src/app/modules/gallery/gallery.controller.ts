@@ -1,4 +1,5 @@
 import httpStatus from 'http-status';
+import AppError from '../../builder/AppError';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import * as GalleryServices from './gallery.service';
@@ -19,6 +20,19 @@ export const createGallery = catchAsync(async (req, res) => {
     : '';
 
   const { ...rest } = req.body || {};
+
+  if (rest.media_type === 'image' && !rest.image_url && !imagePath) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      'Either image URL or image file is required for image type',
+    );
+  }
+  if (rest.media_type === 'video' && !rest.video_url && !videoPath) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      'Either video URL or video file is required for video type',
+    );
+  }
 
   const payload = {
     ...rest,
@@ -61,13 +75,13 @@ export const updateGallery = catchAsync(async (req, res) => {
   const { id } = req.params;
   const files = req.files as Record<string, Express.Multer.File[]>;
 
-  const imageFile = files['image']?.[0] || '';
+  const imageFile = files?.['image']?.[0] || '';
   const imageFilePath = imageFile ? imageFile.path.replace(/\\/g, '/') : '';
   const imagePath = imageFilePath
     ? imageFilePath.split('/').slice(-3).join('/')
     : '';
 
-  const videoFile = files['video']?.[0] || '';
+  const videoFile = files?.['video']?.[0] || '';
   const videoFilePath = videoFile ? videoFile.path.replace(/\\/g, '/') : '';
   const videoPath = videoFilePath
     ? videoFilePath.split('/').slice(-3).join('/')
