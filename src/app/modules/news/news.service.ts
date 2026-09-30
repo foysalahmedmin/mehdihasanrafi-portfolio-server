@@ -84,7 +84,11 @@ export const updateNews = async (
   const update: Partial<TNews> = { ...payload };
 
   // === File cleanup using utility ===
-  if (payload?.thumbnail !== data.thumbnail && data.thumbnail) {
+  if (
+    payload?.thumbnail !== undefined &&
+    payload.thumbnail !== data.thumbnail &&
+    data.thumbnail
+  ) {
     deleteFiles(data.thumbnail, 'news/images');
     update.thumbnail = payload.thumbnail || '';
   }

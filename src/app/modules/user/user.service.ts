@@ -79,8 +79,12 @@ export const updateSelf = async (
     }
   }
 
-  if (payload?.image !== data.image && data.image) {
-    deleteFiles(data.image, 'news/images');
+  if (
+    payload?.image !== undefined &&
+    payload.image !== data.image &&
+    data.image
+  ) {
+    deleteFiles(data.image, 'users');
     payload.image = payload.image || '';
   }
 

@@ -158,7 +158,15 @@ export const changePassword = async (
   user: JwtPayload,
   payload: TChangePassword,
 ) => {
-  if (!(await bcrypt.compare(payload?.current_password, user?.password))) {
+  // `user` here is the decoded JWT payload (_id/name/email/role/image only)
+  // — it never carries a password hash, so the current-password check must
+  // re-fetch the real user document to compare against.
+  const dbUser = await User.isUserExist(user._id);
+  if (!dbUser) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
+  }
+
+  if (!(await bcrypt.compare(payload?.current_password, dbUser.password))) {
     throw new AppError(httpStatus.FORBIDDEN, 'Password do not matched!');
   }
 

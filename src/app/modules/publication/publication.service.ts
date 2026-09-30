@@ -106,12 +106,20 @@ export const updatePublication = async (
   const update: Partial<TPublication> = { ...payload };
 
   // === File cleanup using utility ===
-  if (payload?.thumbnail !== data.thumbnail && data.thumbnail) {
+  if (
+    payload?.thumbnail !== undefined &&
+    payload.thumbnail !== data.thumbnail &&
+    data.thumbnail
+  ) {
     deleteFiles(data.thumbnail, 'publications/images');
     update.thumbnail = payload.thumbnail || '';
   }
 
-  if (payload?.pdf !== data.pdf && data.pdf) {
+  if (
+    payload?.pdf !== undefined &&
+    payload.pdf !== data.pdf &&
+    data.pdf
+  ) {
     deleteFiles(data.pdf, 'publications/pdfs');
     update.pdf = payload.pdf || null;
   }

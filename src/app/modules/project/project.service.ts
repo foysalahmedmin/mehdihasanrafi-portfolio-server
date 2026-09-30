@@ -85,7 +85,11 @@ export const updateProject = async (
   const update: Partial<TProject> = { ...payload };
 
   // === File cleanup using utility ===
-  if (payload?.thumbnail !== data.thumbnail && data.thumbnail) {
+  if (
+    payload?.thumbnail !== undefined &&
+    payload.thumbnail !== data.thumbnail &&
+    data.thumbnail
+  ) {
     deleteFiles(data.thumbnail, 'projects/images');
     update.thumbnail = payload.thumbnail || '';
   }
