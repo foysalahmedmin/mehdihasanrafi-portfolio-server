@@ -3,71 +3,51 @@ import auth from '../../middlewares/auth.middleware';
 import file from '../../middlewares/file.middleware';
 import validation from '../../middlewares/validation.middleware';
 import * as GalleryControllers from './gallery.controller';
-import { folderMapWithYearMonth } from './gallery.utils';
+import { GALLERY_ALLOWED_TYPES, VIDEO_MAX_SIZE, galleryUploadFolder } from './gallery.utils';
 import * as GalleryValidations from './gallery.validation';
 
 const router = express.Router();
 
-// GET
-router.get('/', GalleryControllers.getAllGallery);
-router.get('/:id', GalleryControllers.getGalleryById);
+// A single "files" field accepts any mix of images and videos in one
+// request; each file's own mimetype decides its media_type and destination
+// folder (see gallery.utils#galleryUploadFolder). The 100MB ceiling here is
+// multer's shared limit — file.middleware then re-checks each file against
+// its real per-type limit (10MB image / 100MB video) after upload.
+const galleryUpload = (maxCount: number) =>
+  file({
+    name: 'files',
+    folder: galleryUploadFolder,
+    size: VIDEO_MAX_SIZE,
+    maxCount,
+    allowedTypes: GALLERY_ALLOWED_TYPES,
+  });
 
-// POST
+// GET
+// Public, unauthenticated listing — only active items, admin-ordered.
+router.get('/public', GalleryControllers.getPublicGallery);
+// Admin management listing — every item, regardless of status.
+router.get('/', auth('admin', 'super-admin'), GalleryControllers.getAllGallery);
+router.get(
+  '/:id',
+  auth('admin', 'super-admin'),
+  validation(GalleryValidations.galleryOperationValidationSchema),
+  GalleryControllers.getGalleryById,
+);
+
+// POST — batch create (any number of files, plus an optional image/video URL)
 router.post(
   '/',
   auth('admin', 'super-admin'),
-  file(
-    {
-      name: 'image',
-      folder: folderMapWithYearMonth.image,
-      size: 10_000_000, // 10MB
-      maxCount: 1,
-      allowedTypes: [
-        'image/jpeg',
-        'image/jpg',
-        'image/png',
-        'image/webp',
-        'image/gif',
-      ],
-    },
-    {
-      name: 'video',
-      folder: folderMapWithYearMonth.video,
-      size: 100_000_000, // 100MB
-      maxCount: 1,
-      allowedTypes: ['video/mp4', 'video/webm', 'video/ogg'],
-    },
-  ),
+  galleryUpload(20),
   validation(GalleryValidations.createGalleryValidationSchema),
   GalleryControllers.createGallery,
 );
 
-// PATCH
+// PATCH — update a single item (metadata, and/or replace its one media file/URL)
 router.patch(
   '/:id',
   auth('admin', 'super-admin'),
-  file(
-    {
-      name: 'image',
-      folder: folderMapWithYearMonth.image,
-      size: 10_000_000, // 10MB
-      maxCount: 1,
-      allowedTypes: [
-        'image/jpeg',
-        'image/jpg',
-        'image/png',
-        'image/webp',
-        'image/gif',
-      ],
-    },
-    {
-      name: 'video',
-      folder: folderMapWithYearMonth.video,
-      size: 100_000_000, // 100MB
-      maxCount: 1,
-      allowedTypes: ['video/mp4', 'video/webm', 'video/ogg'],
-    },
-  ),
+  galleryUpload(1),
   validation(GalleryValidations.updateGalleryValidationSchema),
   GalleryControllers.updateGallery,
 );

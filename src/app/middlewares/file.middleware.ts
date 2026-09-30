@@ -8,7 +8,12 @@ import catchAsync from '../utils/catchAsync';
 
 type TFile = {
   name: string;
-  folder: string;
+  // A static folder, or a resolver called per-file (receives the file being
+  // uploaded, e.g. to branch on its mimetype) so a single field can route
+  // different files to different destination folders. Also re-evaluated on
+  // every request rather than once at route-definition time, so date-based
+  // folders (year/month) always reflect the actual upload time.
+  folder: string | ((file: Express.Multer.File) => string);
   size?: number;
   maxCount?: number;
   minCount?: number;
@@ -18,7 +23,11 @@ type TFile = {
 const file = (...files: TFile[]) => {
   const storage = multer.diskStorage({
     destination: (_req, file, cb) => {
-      const folder = files.find((f) => f.name === file.fieldname)?.folder || '';
+      const config = files.find((f) => f.name === file.fieldname);
+      const folder =
+        typeof config?.folder === 'function'
+          ? config.folder(file)
+          : config?.folder || '';
       const safeFolder = folder.replace(/^\/+/, ''); // remove leading slash
       const dir = path.join('uploads', safeFolder);
       fs.mkdirSync(dir, { recursive: true });
@@ -87,6 +96,29 @@ const file = (...files: TFile[]) => {
       }
 
       try {
+        // Enforce true per-field max size. multer's `limits.fileSize` is a
+        // single global ceiling shared by every field, so a small per-field
+        // `size` (e.g. 10MB for images next to 100MB for videos) was never
+        // actually enforced on its own — check it here instead.
+        const uploadedFiles = req.files as
+          | Record<string, Express.Multer.File[]>
+          | undefined;
+        if (uploadedFiles) {
+          for (const config of files) {
+            if (!config.size) continue;
+            const uploaded = uploadedFiles[config.name] || [];
+            for (const uploadedFile of uploaded) {
+              if (uploadedFile.size > config.size) {
+                fs.unlink(uploadedFile.path, () => {});
+                throw new AppError(
+                  httpStatus.BAD_REQUEST,
+                  `"${uploadedFile.originalname}" exceeds the maximum size for field "${config.name}"`,
+                );
+              }
+            }
+          }
+        }
+
         // Check minCount
         const missing = files.filter((file) => {
           const uploaded = (
