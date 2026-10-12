@@ -8,6 +8,11 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const app_1 = __importDefault(require("./app"));
 const config_1 = __importDefault(require("./app/config"));
 let server;
+// A query issued before the connection is ready queues up instead of
+// failing immediately (default). A cold-start TLS handshake to Atlas can
+// take longer than Mongoose's default 10s buffer timeout, so give queued
+// queries more room before giving up.
+mongoose_1.default.set('bufferTimeoutMS', 20000);
 // Serverless functions can be invoked while a previous invocation's
 // connection is still warm (the same container reused), so the connection
 // is cached on the module scope instead of reconnecting on every request.
@@ -17,7 +22,15 @@ const connectDB = () => {
         return Promise.resolve(mongoose_1.default);
     }
     if (!connectionPromise) {
-        connectionPromise = mongoose_1.default.connect(config_1.default.database_url).catch((err) => {
+        connectionPromise = mongoose_1.default
+            .connect(config_1.default.database_url, {
+            serverSelectionTimeoutMS: 15000,
+            // Each serverless invocation is effectively single-concurrency per
+            // container, so a large pool just holds idle connections open
+            // against Atlas for no benefit.
+            maxPoolSize: 5,
+        })
+            .catch((err) => {
             // Let the next invocation retry instead of caching a failed connection.
             connectionPromise = null;
             throw err;
