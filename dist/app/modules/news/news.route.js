@@ -1,0 +1,87 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const auth_middleware_1 = __importDefault(require("../../middlewares/auth.middleware"));
+const file_middleware_1 = __importDefault(require("../../middlewares/file.middleware"));
+const validation_middleware_1 = __importDefault(require("../../middlewares/validation.middleware"));
+const NewsControllers = __importStar(require("./news.controller"));
+const news_utils_1 = require("./news.utils");
+const NewsValidations = __importStar(require("./news.validation"));
+const router = express_1.default.Router();
+// GET
+router.get('/', NewsControllers.getPublicBulkNews);
+router.get('/:slug', NewsControllers.getPublicNews);
+// PATCH
+router.patch('/bulk', (0, auth_middleware_1.default)('admin'), (0, validation_middleware_1.default)(NewsValidations.updateBulkNewsValidationSchema), NewsControllers.updateBulkNews);
+router.patch('/:id', (0, auth_middleware_1.default)('admin'), (0, file_middleware_1.default)({
+    name: 'thumbnail',
+    folder: news_utils_1.folderMap.thumbnail,
+    resourceType: 'image',
+    size: 5_000_000,
+    maxCount: 1,
+    allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+}, {
+    name: 'images',
+    folder: news_utils_1.folderMap.image,
+    resourceType: 'image',
+    size: 5_000_000,
+    maxCount: 4,
+    allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+}), (0, validation_middleware_1.default)(NewsValidations.updateNewsValidationSchema), NewsControllers.updateNews);
+// DELETE
+router.delete('/bulk/permanent', (0, auth_middleware_1.default)('admin'), (0, validation_middleware_1.default)(NewsValidations.bulkNewsOperationValidationSchema), NewsControllers.deleteBulkNewsPermanent);
+router.delete('/:id/permanent', (0, auth_middleware_1.default)('admin'), (0, validation_middleware_1.default)(NewsValidations.newsOperationValidationSchema), NewsControllers.deleteNewsPermanent);
+// POST
+router.post('/', (0, auth_middleware_1.default)('admin', 'author'), (0, file_middleware_1.default)({
+    name: 'thumbnail',
+    folder: news_utils_1.folderMap.thumbnail,
+    resourceType: 'image',
+    size: 5_000_000,
+    maxCount: 1,
+    allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+}, {
+    name: 'images',
+    folder: news_utils_1.folderMap.image,
+    resourceType: 'image',
+    size: 5_000_000,
+    maxCount: 4,
+    allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+}), (0, validation_middleware_1.default)(NewsValidations.createNewsValidationSchema), NewsControllers.createNews);
+const NewsRoutes = router;
+exports.default = NewsRoutes;
