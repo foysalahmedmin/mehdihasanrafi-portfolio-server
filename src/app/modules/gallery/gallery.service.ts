@@ -1,8 +1,7 @@
 import httpStatus from 'http-status';
 import AppError from '../../builder/AppError';
 import AppQuery from '../../builder/AppQuery';
-import { deleteFiles } from '../../utils/deleteFiles';
-import { folderForStoredPath } from './gallery.utils';
+import { deleteCloudinaryFiles } from '../../utils/deleteCloudinaryFiles';
 import { Gallery } from './gallery.model';
 import { TGallery, TGalleryItemInput, TUpdateGallery } from './gallery.type';
 
@@ -111,10 +110,10 @@ export const deleteGallery = async (id: string): Promise<void> => {
   }
 
   if (gallery.image) {
-    deleteFiles(gallery.image, folderForStoredPath('image'));
+    deleteCloudinaryFiles(gallery.image, 'image');
   }
   if (gallery.video) {
-    deleteFiles(gallery.video, folderForStoredPath('video'));
+    deleteCloudinaryFiles(gallery.video, 'video');
   }
 
   await Gallery.findByIdAndDelete(id);
@@ -130,8 +129,8 @@ export const deleteBulkGallery = async (
   const images = galleries.filter((g) => g.image).map((g) => g.image!);
   const videos = galleries.filter((g) => g.video).map((g) => g.video!);
 
-  if (images.length) deleteFiles(images, folderForStoredPath('image'));
-  if (videos.length) deleteFiles(videos, folderForStoredPath('video'));
+  if (images.length) deleteCloudinaryFiles(images, 'image');
+  if (videos.length) deleteCloudinaryFiles(videos, 'video');
 
   await Gallery.deleteMany({ _id: { $in: foundIds } });
 

@@ -3,20 +3,21 @@ import auth from '../../middlewares/auth.middleware';
 import file from '../../middlewares/file.middleware';
 import validation from '../../middlewares/validation.middleware';
 import * as GalleryControllers from './gallery.controller';
-import { GALLERY_ALLOWED_TYPES, VIDEO_MAX_SIZE, galleryUploadFolder } from './gallery.utils';
+import { GALLERY_ALLOWED_TYPES, GALLERY_FOLDER, VIDEO_MAX_SIZE } from './gallery.utils';
 import * as GalleryValidations from './gallery.validation';
 
 const router = express.Router();
 
 // A single "files" field accepts any mix of images and videos in one
-// request; each file's own mimetype decides its media_type and destination
-// folder (see gallery.utils#galleryUploadFolder). The 100MB ceiling here is
-// multer's shared limit — file.middleware then re-checks each file against
+// request; Cloudinary's resource_type "auto" tells images and videos apart
+// on upload, so both share one folder. The 100MB ceiling here is multer's
+// shared limit — the gallery controller then re-checks each file against
 // its real per-type limit (10MB image / 100MB video) after upload.
 const galleryUpload = (maxCount: number) =>
   file({
     name: 'files',
-    folder: galleryUploadFolder,
+    folder: GALLERY_FOLDER,
+    resourceType: 'auto',
     size: VIDEO_MAX_SIZE,
     maxCount,
     allowedTypes: GALLERY_ALLOWED_TYPES,

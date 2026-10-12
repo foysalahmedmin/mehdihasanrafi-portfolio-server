@@ -3,7 +3,7 @@ import auth from '../../middlewares/auth.middleware';
 import file from '../../middlewares/file.middleware';
 import validation from '../../middlewares/validation.middleware';
 import * as NewsControllers from './news.controller';
-import { folderMapWithYearMonth } from './news.utils';
+import { folderMap } from './news.utils';
 import * as NewsValidations from './news.validation';
 
 const router = express.Router();
@@ -25,14 +25,16 @@ router.patch(
   file(
     {
       name: 'thumbnail',
-      folder: folderMapWithYearMonth.thumbnail,
+      folder: folderMap.thumbnail,
+      resourceType: 'image',
       size: 5_000_000,
       maxCount: 1,
       allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
     },
     {
       name: 'images',
-      folder: folderMapWithYearMonth.image,
+      folder: folderMap.image,
+      resourceType: 'image',
       size: 5_000_000,
       maxCount: 4,
       allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
@@ -63,14 +65,16 @@ router.post(
   file(
     {
       name: 'thumbnail',
-      folder: folderMapWithYearMonth.thumbnail,
+      folder: folderMap.thumbnail,
+      resourceType: 'image',
       size: 5_000_000,
       maxCount: 1,
       allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
     },
     {
       name: 'images',
-      folder: folderMapWithYearMonth.image,
+      folder: folderMap.image,
+      resourceType: 'image',
       size: 5_000_000,
       maxCount: 4,
       allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],

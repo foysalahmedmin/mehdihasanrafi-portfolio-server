@@ -2,7 +2,7 @@ import { Flattener } from 'flattener-kit';
 import httpStatus from 'http-status';
 import AppError from '../../builder/AppError';
 import AppQuery from '../../builder/AppQuery';
-import { deleteFiles } from '../../utils/deleteFiles';
+import { deleteCloudinaryFiles } from '../../utils/deleteCloudinaryFiles';
 import { News } from './news.model';
 import { TNews } from './news.type';
 
@@ -89,7 +89,7 @@ export const updateNews = async (
     payload.thumbnail !== data.thumbnail &&
     data.thumbnail
   ) {
-    deleteFiles(data.thumbnail, 'news/images');
+    deleteCloudinaryFiles(data.thumbnail, 'image');
     update.thumbnail = payload.thumbnail || '';
   }
 
@@ -102,7 +102,7 @@ export const updateNews = async (
     );
 
     if (imagesToDelete.length > 0) {
-      deleteFiles(imagesToDelete, 'news/images');
+      deleteCloudinaryFiles(imagesToDelete, 'image');
     }
   }
 
@@ -147,8 +147,8 @@ export const deleteNewsPermanent = async (id: string): Promise<void> => {
   }
 
   // === File cleanup using utility ===
-  deleteFiles(news?.thumbnail, 'news/images');
-  deleteFiles(news?.images, 'news/images');
+  deleteCloudinaryFiles(news?.thumbnail, 'image');
+  deleteCloudinaryFiles(news?.images, 'image');
 
   await News.findByIdAndDelete(id).setOptions({ bypassDeleted: true });
 };

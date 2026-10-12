@@ -7,21 +7,14 @@ export const createNews = catchAsync(async (req, res) => {
   // Multer files type casting
   const files = req.files as Record<string, Express.Multer.File[]>;
 
-  // Thumbnail filename
+  // file.middleware has already uploaded these to Cloudinary — `.path` is
+  // each one's secure_url.
   const thumbnailFile = files['thumbnail']?.[0] || '';
-  const thumbnailFilePath = thumbnailFile
-    ? thumbnailFile.path.replace(/\\/g, '/')
-    : '';
-  const thumbnailPath = thumbnailFilePath
-    ? thumbnailFilePath.split('/').slice(-3).join('/')
-    : '';
+  const thumbnailPath = thumbnailFile ? thumbnailFile.path : '';
 
-  // Multiple images filenames
+  // Multiple images
   const imagesFiles = files['images'] || [];
-  const imagesPaths = imagesFiles?.map((f) => {
-    const filePath = f?.path?.replace(/\\/g, '/');
-    return filePath.split('/').slice(-3).join('/');
-  });
+  const imagesPaths = imagesFiles?.map((f) => f.path);
 
   const { ...rest } = req.body || {};
 
@@ -67,21 +60,14 @@ export const updateNews = catchAsync(async (req, res) => {
   // Multer files type casting
   const files = req.files as Record<string, Express.Multer.File[]>;
 
-  // Thumbnail filename
+  // file.middleware has already uploaded these to Cloudinary — `.path` is
+  // each one's secure_url.
   const thumbnailFile = files['thumbnail']?.[0] || '';
-  const thumbnailFilePath = thumbnailFile
-    ? thumbnailFile.path.replace(/\\/g, '/')
-    : '';
-  const thumbnailPath = thumbnailFilePath
-    ? thumbnailFilePath.split('/').slice(-3).join('/')
-    : '';
+  const thumbnailPath = thumbnailFile ? thumbnailFile.path : '';
 
-  // Multiple images filenames
+  // Multiple images
   const imagesFiles = files['images'] || [];
-  const imagesPaths = imagesFiles?.map((f) => {
-    const filePath = f?.path?.replace(/\\/g, '/');
-    return filePath.split('/').slice(-3).join('/');
-  });
+  const imagesPaths = imagesFiles?.map((f) => f.path);
 
   const { ...rest } = req.body || {};
 

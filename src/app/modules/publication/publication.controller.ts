@@ -7,26 +7,17 @@ export const createPublication = catchAsync(async (req, res) => {
   // Multer files type casting
   const files = req.files as Record<string, Express.Multer.File[]>;
 
-  // Thumbnail filename
+  // file.middleware has already uploaded these to Cloudinary — `.path` is
+  // each one's secure_url.
   const thumbnailFile = files['thumbnail']?.[0] || '';
-  const thumbnailFilePath = thumbnailFile
-    ? thumbnailFile.path.replace(/\\/g, '/')
-    : '';
-  const thumbnailPath = thumbnailFilePath
-    ? thumbnailFilePath.split('/').slice(-3).join('/')
-    : '';
+  const thumbnailPath = thumbnailFile ? thumbnailFile.path : '';
 
-  // PDF filename
   const pdfFile = files['pdf']?.[0] || '';
-  const pdfFilePath = pdfFile ? pdfFile.path.replace(/\\/g, '/') : '';
-  const pdfPath = pdfFilePath ? pdfFilePath.split('/').slice(-3).join('/') : '';
+  const pdfPath = pdfFile ? pdfFile.path : '';
 
-  // Multiple images filenames
+  // Multiple images
   const imagesFiles = files['images'] || [];
-  const imagesPaths = imagesFiles?.map((f) => {
-    const filePath = f?.path?.replace(/\\/g, '/');
-    return filePath.split('/').slice(-3).join('/');
-  });
+  const imagesPaths = imagesFiles?.map((f) => f.path);
 
   const { ...rest } = req.body || {};
 
@@ -72,26 +63,17 @@ export const updatePublication = catchAsync(async (req, res) => {
   // Multer files type casting
   const files = req.files as Record<string, Express.Multer.File[]>;
 
-  // Thumbnail filename
+  // file.middleware has already uploaded these to Cloudinary — `.path` is
+  // each one's secure_url.
   const thumbnailFile = files['thumbnail']?.[0] || '';
-  const thumbnailFilePath = thumbnailFile
-    ? thumbnailFile.path.replace(/\\/g, '/')
-    : '';
-  const thumbnailPath = thumbnailFilePath
-    ? thumbnailFilePath.split('/').slice(-3).join('/')
-    : '';
+  const thumbnailPath = thumbnailFile ? thumbnailFile.path : '';
 
-  // PDF filename
   const pdfFile = files['pdf']?.[0] || '';
-  const pdfFilePath = pdfFile ? pdfFile.path.replace(/\\/g, '/') : '';
-  const pdfPath = pdfFilePath ? pdfFilePath.split('/').slice(-3).join('/') : '';
+  const pdfPath = pdfFile ? pdfFile.path : '';
 
-  // Multiple images filenames
+  // Multiple images
   const imagesFiles = files['images'] || [];
-  const imagesPaths = imagesFiles?.map((f) => {
-    const filePath = f?.path?.replace(/\\/g, '/');
-    return filePath.split('/').slice(-3).join('/');
-  });
+  const imagesPaths = imagesFiles?.map((f) => f.path);
 
   const { ...rest } = req.body || {};
 

@@ -3,7 +3,7 @@ import auth from '../../middlewares/auth.middleware';
 import file from '../../middlewares/file.middleware';
 import validation from '../../middlewares/validation.middleware';
 import * as PublicationControllers from './publication.controller';
-import { folderMapWithYearMonth } from './publication.utils';
+import { folderMap } from './publication.utils';
 import * as PublicationValidations from './publication.validation';
 
 const router = express.Router();
@@ -25,21 +25,24 @@ router.patch(
   file(
     {
       name: 'thumbnail',
-      folder: folderMapWithYearMonth.thumbnail,
+      folder: folderMap.thumbnail,
+      resourceType: 'image',
       size: 5_000_000,
       maxCount: 1,
       allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
     },
     {
       name: 'pdf',
-      folder: folderMapWithYearMonth.pdf,
+      folder: folderMap.pdf,
+      resourceType: 'raw',
       size: 20_000_000,
       maxCount: 1,
       allowedTypes: ['application/pdf'],
     },
     {
       name: 'images',
-      folder: folderMapWithYearMonth.image,
+      folder: folderMap.image,
+      resourceType: 'image',
       size: 5_000_000,
       maxCount: 4,
       allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
@@ -70,21 +73,24 @@ router.post(
   file(
     {
       name: 'thumbnail',
-      folder: folderMapWithYearMonth.thumbnail,
+      folder: folderMap.thumbnail,
+      resourceType: 'image',
       size: 5_000_000,
       maxCount: 1,
       allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
     },
     {
       name: 'pdf',
-      folder: folderMapWithYearMonth.pdf,
+      folder: folderMap.pdf,
+      resourceType: 'raw',
       size: 20_000_000,
       maxCount: 1,
       allowedTypes: ['application/pdf'],
     },
     {
       name: 'images',
-      folder: folderMapWithYearMonth.image,
+      folder: folderMap.image,
+      resourceType: 'image',
       size: 5_000_000,
       maxCount: 4,
       allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],

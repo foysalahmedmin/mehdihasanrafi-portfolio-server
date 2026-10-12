@@ -2,7 +2,7 @@ import { Flattener } from 'flattener-kit';
 import httpStatus from 'http-status';
 import AppError from '../../builder/AppError';
 import AppQuery from '../../builder/AppQuery';
-import { deleteFiles } from '../../utils/deleteFiles';
+import { deleteCloudinaryFiles } from '../../utils/deleteCloudinaryFiles';
 import { Publication } from './publication.model';
 import { TPublication } from './publication.type';
 
@@ -111,7 +111,7 @@ export const updatePublication = async (
     payload.thumbnail !== data.thumbnail &&
     data.thumbnail
   ) {
-    deleteFiles(data.thumbnail, 'publications/images');
+    deleteCloudinaryFiles(data.thumbnail, 'image');
     update.thumbnail = payload.thumbnail || '';
   }
 
@@ -120,7 +120,7 @@ export const updatePublication = async (
     payload.pdf !== data.pdf &&
     data.pdf
   ) {
-    deleteFiles(data.pdf, 'publications/pdfs');
+    deleteCloudinaryFiles(data.pdf, 'raw');
     update.pdf = payload.pdf || null;
   }
 
@@ -133,7 +133,7 @@ export const updatePublication = async (
     );
 
     if (imagesToDelete.length > 0) {
-      deleteFiles(imagesToDelete, 'publications/images');
+      deleteCloudinaryFiles(imagesToDelete, 'image');
     }
   }
 
@@ -181,10 +181,10 @@ export const deletePublicationPermanent = async (id: string): Promise<void> => {
 
   // === File cleanup using utility ===
   if (publication?.thumbnail)
-    deleteFiles(publication.thumbnail, 'publications/images');
-  if (publication?.pdf) deleteFiles(publication.pdf, 'publications/pdfs');
+    deleteCloudinaryFiles(publication.thumbnail, 'image');
+  if (publication?.pdf) deleteCloudinaryFiles(publication.pdf, 'raw');
   if (publication?.images)
-    deleteFiles(publication.images, 'publications/images');
+    deleteCloudinaryFiles(publication.images, 'image');
 
   await Publication.findByIdAndDelete(id).setOptions({ bypassDeleted: true });
 };

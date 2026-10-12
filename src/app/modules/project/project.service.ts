@@ -2,7 +2,7 @@ import { Flattener } from 'flattener-kit';
 import httpStatus from 'http-status';
 import AppError from '../../builder/AppError';
 import AppQuery from '../../builder/AppQuery';
-import { deleteFiles } from '../../utils/deleteFiles';
+import { deleteCloudinaryFiles } from '../../utils/deleteCloudinaryFiles';
 import { Project } from './project.model';
 import { TProject } from './project.type';
 
@@ -90,7 +90,7 @@ export const updateProject = async (
     payload.thumbnail !== data.thumbnail &&
     data.thumbnail
   ) {
-    deleteFiles(data.thumbnail, 'projects/images');
+    deleteCloudinaryFiles(data.thumbnail, 'image');
     update.thumbnail = payload.thumbnail || '';
   }
 
@@ -103,7 +103,7 @@ export const updateProject = async (
     );
 
     if (imagesToDelete.length > 0) {
-      deleteFiles(imagesToDelete, 'projects/images');
+      deleteCloudinaryFiles(imagesToDelete, 'image');
     }
   }
 
@@ -148,8 +148,8 @@ export const deleteProjectPermanent = async (id: string): Promise<void> => {
   }
 
   // === File cleanup using utility ===
-  deleteFiles(project?.thumbnail, 'projects/images');
-  deleteFiles(project?.images, 'projects/images');
+  deleteCloudinaryFiles(project?.thumbnail, 'image');
+  deleteCloudinaryFiles(project?.images, 'image');
 
   await Project.findByIdAndDelete(id).setOptions({ bypassDeleted: true });
 };

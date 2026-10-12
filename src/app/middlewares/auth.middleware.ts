@@ -7,41 +7,12 @@ import config from '../config';
 import { TJwtPayload } from '../modules/auth/auth.type';
 import { User } from '../modules/user/user.model';
 import { TRole } from '../modules/user/user.type';
-import { cacheClient } from '../redis';
 import catchAsync from '../utils/catchAsync';
 
-const getUser = async (_id: string) => {
-  const redisKey = `auth:user:${_id}`;
-
-  if (!config.redis_enabled) return await User.isUserExist(_id);
-
-  try {
-    const cachedUser = await cacheClient.get(redisKey);
-    if (cachedUser) return JSON.parse(cachedUser.toString());
-
-    const user = await User.isUserExist(_id);
-    if (user) {
-      try {
-        await cacheClient.set(redisKey, JSON.stringify(user), { EX: 30 * 60 });
-      } catch (err) {
-        console.warn('Redis set failed:', err);
-      }
-    }
-    return user;
-  } catch (err) {
-    console.warn('Redis get failed, falling back to DB:', err);
-    return await User.isUserExist(_id);
-  }
-};
-
-const auth = (...roles: (TRole | 'guest')[]) => {
+const auth = (...roles: TRole[]) => {
   return catchAsync(
     async (req: Request, _res: Response, next: NextFunction) => {
       const token = req.headers.authorization;
-
-      if (roles.includes('guest') && req.guest?._id && !token) {
-        return next();
-      }
 
       if (!token) {
         throw new AppError(httpStatus.UNAUTHORIZED, 'No token provided.');
@@ -66,7 +37,11 @@ const auth = (...roles: (TRole | 'guest')[]) => {
         throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid token.');
       }
 
-      const user = await getUser(_id);
+      const user = await User.isUserExist(_id);
+
+      if (!user) {
+        throw new AppError(httpStatus.UNAUTHORIZED, 'User not found.');
+      }
 
       if (user.is_deleted) {
         throw new AppError(httpStatus.FORBIDDEN, 'User is deleted');

@@ -31,7 +31,7 @@ export const signin = catchAsync(async (req, res) => {
 
 export const signup = catchAsync(async (req, res) => {
   const files = req.files as Record<string, Express.Multer.File[]>;
-  const image = files?.image?.[0]?.filename || '';
+  const image = files?.image?.[0]?.path || '';
   const payload = {
     ...req.body,
     ...(image && { image: image }),

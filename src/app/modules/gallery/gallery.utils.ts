@@ -1,4 +1,3 @@
-import { dirYearMonth } from '../../utils/dirYearMonth';
 import { TMediaType } from './gallery.type';
 
 export const IMAGE_MIME_TYPES = [
@@ -21,9 +20,14 @@ export const GALLERY_ALLOWED_TYPES = [...IMAGE_MIME_TYPES, ...VIDEO_MIME_TYPES];
 export const IMAGE_MAX_SIZE = 10_000_000; // 10MB
 export const VIDEO_MAX_SIZE = 100_000_000; // 100MB
 
-// Detects whether an uploaded file is an image or a video from its mimetype.
-// Returns null for anything else (should already be blocked by multer's
-// allowedTypes filter, but kept as a safety net).
+// Cloudinary destination — a single "files" field holds a mixed batch of
+// images and videos; `resource_type: 'auto'` lets Cloudinary itself detect
+// which each one is, so there's no need to pre-sort them into folders.
+export const GALLERY_FOLDER = 'gallery';
+
+// Detects whether an uploaded file is an image or a video from its
+// mimetype — used for the DB's own media_type field and size limits
+// (Cloudinary's own type detection is independent of this).
 export const detectMediaType = (mimetype: string): TMediaType | null => {
   if (IMAGE_MIME_TYPES.includes(mimetype)) return 'image';
   if (VIDEO_MIME_TYPES.includes(mimetype)) return 'video';
@@ -32,19 +36,3 @@ export const detectMediaType = (mimetype: string): TMediaType | null => {
 
 export const maxSizeFor = (mediaType: TMediaType): number =>
   mediaType === 'image' ? IMAGE_MAX_SIZE : VIDEO_MAX_SIZE;
-
-export const folderFor = (mediaType: TMediaType): string =>
-  `gallery/${mediaType === 'image' ? 'images' : 'videos'}/${dirYearMonth().suffix}`;
-
-// Resolves the upload destination folder per-file, based on the file's own
-// mimetype, so a single "files" field can hold a mixed batch of images and
-// videos and still land each one in the right dated subfolder. Also
-// recomputes the year/month at request time (not at route-definition time),
-// so a long-running server doesn't keep writing into the month it booted in.
-export const galleryUploadFolder = (file: { mimetype: string }): string => {
-  const mediaType = detectMediaType(file.mimetype) ?? 'image';
-  return folderFor(mediaType);
-};
-
-export const folderForStoredPath = (mediaType: TMediaType): string =>
-  mediaType === 'image' ? 'gallery/images' : 'gallery/videos';

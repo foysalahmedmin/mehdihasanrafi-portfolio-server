@@ -1,7 +1,7 @@
 import httpStatus from 'http-status';
 import AppError from '../../builder/AppError';
 import AppQuery from '../../builder/AppQuery';
-import { deleteFiles } from '../../utils/deleteFiles';
+import { deleteCloudinaryFiles } from '../../utils/deleteCloudinaryFiles';
 import { TJwtPayload } from '../auth/auth.type';
 import { User } from './user.model';
 import { TUser } from './user.type';
@@ -84,7 +84,7 @@ export const updateSelf = async (
     payload.image !== data.image &&
     data.image
   ) {
-    deleteFiles(data.image, 'users');
+    deleteCloudinaryFiles(data.image, 'image');
     payload.image = payload.image || '';
   }
 

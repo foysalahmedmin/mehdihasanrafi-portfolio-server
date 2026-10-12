@@ -11,14 +11,6 @@ export default {
   url:
     (process.env.URL as string) ||
     `http://localhost:${process.env.PORT || 5000}`,
-  cluster_enabled: process.env.CLUSTER_ENABLED === 'true' ? true : false,
-  redis_enabled: !!(
-    process.env.REDIS_ENABLED === 'true' && !!process.env.REDIS_URL
-  )
-    ? true
-    : false,
-  redis_url: process.env.REDIS_URL as string,
-  redis_password: process.env.REDIS_PASSWORD as string,
   database_url: process.env.DATABASE_URL as string,
   front_end_url: process.env.FRONT_END_URL as string,
   bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS as string,
@@ -36,11 +28,13 @@ export default {
     .JWT_EMAIL_VERIFICATION_SECRET as string,
   jwt_email_verification_secret_expires_in: process.env
     .JWT_EMAIL_VERIFICATION_SECRET_EXPIRES_IN as ExpiresIn,
-  session_secret: process.env.SESSION_SECRET as string,
   reset_password_ui_link: process.env.RESET_PASSWORD_UI_LINK as string,
   email_verification_ui_link: process.env.EMAIL_VERIFICATION_UI_LINK as string,
   auth_user_email: process.env.AUTH_USER_EMAIL as string,
   auth_user_email_password: process.env.AUTH_USER_EMAIL_PASSWORD as string,
+  cloudinary_cloud_name: process.env.CLOUDINARY_CLOUD_NAME as string,
+  cloudinary_api_key: process.env.CLOUDINARY_API_KEY as string,
+  cloudinary_api_secret: process.env.CLOUDINARY_API_SECRET as string,
 };
 
 // node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"

@@ -17,7 +17,8 @@ router.post(
   '/signup',
   file({
     name: 'image',
-    folder: '/users',
+    folder: 'users',
+    resourceType: 'image',
     size: 5_000_000,
     maxCount: 1,
     allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],

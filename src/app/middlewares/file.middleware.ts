@@ -1,70 +1,56 @@
 import { NextFunction, Request, Response } from 'express';
-import fs from 'fs';
 import httpStatus from 'http-status';
 import multer, { FileFilterCallback } from 'multer';
-import path from 'path';
+import cloudinary from '../config/cloudinary';
 import AppError from '../builder/AppError';
 import catchAsync from '../utils/catchAsync';
 
+export type TCloudinaryResourceType = 'image' | 'video' | 'raw' | 'auto';
+
 type TFile = {
   name: string;
-  // A static folder, or a resolver called per-file (receives the file being
-  // uploaded, e.g. to branch on its mimetype) so a single field can route
-  // different files to different destination folders. Also re-evaluated on
-  // every request rather than once at route-definition time, so date-based
-  // folders (year/month) always reflect the actual upload time.
-  folder: string | ((file: Express.Multer.File) => string);
+  // Cloudinary folder this field's files are uploaded into, e.g. "news/images".
+  folder: string;
+  resourceType?: TCloudinaryResourceType; // default 'auto'
   size?: number;
   maxCount?: number;
   minCount?: number;
   allowedTypes?: string[];
 };
 
-const file = (...files: TFile[]) => {
-  const storage = multer.diskStorage({
-    destination: (_req, file, cb) => {
-      const config = files.find((f) => f.name === file.fieldname);
-      const folder =
-        typeof config?.folder === 'function'
-          ? config.folder(file)
-          : config?.folder || '';
-      const safeFolder = folder.replace(/^\/+/, ''); // remove leading slash
-      const dir = path.join('uploads', safeFolder);
-      fs.mkdirSync(dir, { recursive: true });
-      cb(null, dir);
-    },
-    filename: (_req, file, cb) => {
-      const ext = path.extname(file.originalname);
-      const baseName = path.basename(file.originalname, ext);
-      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-      cb(null, `${baseName}-${uniqueSuffix}${ext}`);
-    },
-  });
+// Uploads are held in memory (never written to disk — the only option that
+// works on a serverless host like Vercel, whose filesystem is read-only /
+// ephemeral) and streamed straight to Cloudinary.
+const storage = multer.memoryStorage();
 
-  // Global max size for multer limits (max of all per-field size limits)
+const file = (...files: TFile[]) => {
+  const configByField = new Map(files.map((f) => [f.name, f]));
+
   const globalMaxSize = Math.max(...files.map((f) => f.size || 5_000_000));
 
-  // File filter for validating mimetype and size per field
   const fileFilter = (
     _req: Request,
-    file: Express.Multer.File,
+    uploadedFile: Express.Multer.File,
     cb: FileFilterCallback,
   ) => {
-    const config = files.find((f) => f.name === file.fieldname);
+    const config = configByField.get(uploadedFile.fieldname);
     if (!config) {
       return cb(
         new AppError(
           httpStatus.BAD_REQUEST,
-          `Unexpected field "${file.fieldname}"`,
+          `Unexpected field "${uploadedFile.fieldname}"`,
         ),
       );
     }
 
-    if (config.allowedTypes && !config.allowedTypes.includes(file.mimetype)) {
+    if (
+      config.allowedTypes &&
+      !config.allowedTypes.includes(uploadedFile.mimetype)
+    ) {
       return cb(
         new AppError(
           httpStatus.BAD_REQUEST,
-          `Invalid file type for field "${file.fieldname}"`,
+          `Invalid file type for field "${uploadedFile.fieldname}"`,
         ),
       );
     }
@@ -72,7 +58,6 @@ const file = (...files: TFile[]) => {
     cb(null, true);
   };
 
-  // Setup multer upload
   const upload = multer({
     storage,
     limits: { fileSize: globalMaxSize },
@@ -85,7 +70,7 @@ const file = (...files: TFile[]) => {
   );
 
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    upload(req, res, (err: any) => {
+    upload(req, res, async (err: any) => {
       if (err) {
         return next(
           new AppError(
@@ -96,20 +81,19 @@ const file = (...files: TFile[]) => {
       }
 
       try {
-        // Enforce true per-field max size. multer's `limits.fileSize` is a
-        // single global ceiling shared by every field, so a small per-field
-        // `size` (e.g. 10MB for images next to 100MB for videos) was never
-        // actually enforced on its own — check it here instead.
         const uploadedFiles = req.files as
           | Record<string, Express.Multer.File[]>
           | undefined;
+
+        // Enforce true per-field max size — multer's `limits.fileSize` is a
+        // single ceiling shared by every field, so a smaller per-field
+        // `size` (e.g. 10MB images next to 100MB videos) isn't actually
+        // enforced by multer itself.
         if (uploadedFiles) {
           for (const config of files) {
             if (!config.size) continue;
-            const uploaded = uploadedFiles[config.name] || [];
-            for (const uploadedFile of uploaded) {
+            for (const uploadedFile of uploadedFiles[config.name] || []) {
               if (uploadedFile.size > config.size) {
-                fs.unlink(uploadedFile.path, () => {});
                 throw new AppError(
                   httpStatus.BAD_REQUEST,
                   `"${uploadedFile.originalname}" exceeds the maximum size for field "${config.name}"`,
@@ -119,16 +103,10 @@ const file = (...files: TFile[]) => {
           }
         }
 
-        // Check minCount
-        const missing = files.filter((file) => {
-          const uploaded = (
-            req.files as Record<string, Express.Multer.File[]>
-          )?.[file.name];
-          return (
-            file.minCount && (!uploaded || uploaded.length < file.minCount)
-          );
+        const missing = files.filter((f) => {
+          const uploaded = uploadedFiles?.[f.name];
+          return f.minCount && (!uploaded || uploaded.length < f.minCount);
         });
-
         if (missing.length) {
           const fields = missing.map((f) => `"${f.name}"`).join(', ');
           throw new AppError(
@@ -137,36 +115,32 @@ const file = (...files: TFile[]) => {
           );
         }
 
-        // Delete old files support (single or multiple)
-        const oldFilePaths = (
-          req as Request & { oldFilePath?: string; oldFilePaths?: string[] }
-        ).oldFilePaths;
-        if (oldFilePaths?.length) {
-          oldFilePaths.forEach((oldPath) => {
-            const fullPath = path.resolve(oldPath);
-            fs.unlink(fullPath, (unlinkErr) => {
-              if (unlinkErr && unlinkErr.code !== 'ENOENT') {
-                console.warn(
-                  `Failed to delete old file: ${fullPath}`,
-                  unlinkErr.message,
-                );
-              }
-            });
-          });
-        } else {
-          const oldFilePath = (req as Request & { oldFilePath?: string })
-            .oldFilePath;
-          if (oldFilePath) {
-            const fullPath = path.resolve(oldFilePath);
-            fs.unlink(fullPath, (unlinkErr) => {
-              if (unlinkErr && unlinkErr.code !== 'ENOENT') {
-                console.warn(
-                  `Failed to delete old file: ${fullPath}`,
-                  unlinkErr.message,
-                );
-              }
-            });
+        // Upload every received file to Cloudinary. The result is written
+        // back onto the same Multer file object so controllers barely
+        // change: `file.path` becomes the full Cloudinary URL (in place of
+        // a local disk path) and `file.filename` becomes the Cloudinary
+        // `public_id` (in place of a local filename) — used later to delete
+        // the asset.
+        if (uploadedFiles) {
+          const uploadTasks: Promise<void>[] = [];
+          for (const config of files) {
+            for (const uploadedFile of uploadedFiles[config.name] || []) {
+              uploadTasks.push(
+                (async () => {
+                  const dataUri = `data:${uploadedFile.mimetype};base64,${uploadedFile.buffer.toString('base64')}`;
+                  const result = await cloudinary.uploader.upload(dataUri, {
+                    folder: config.folder,
+                    resource_type: config.resourceType || 'auto',
+                  });
+                  (uploadedFile as Express.Multer.File & {
+                    path: string;
+                  }).path = result.secure_url;
+                  uploadedFile.filename = result.public_id;
+                })(),
+              );
+            }
           }
+          await Promise.all(uploadTasks);
         }
 
         next();

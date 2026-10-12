@@ -1,11 +1,7 @@
-import MongoStore from 'connect-mongo';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Application } from 'express';
-import session from 'express-session';
-import path from 'path';
-import config from './app/config';
 import error from './app/middlewares/error.middleware';
 import log from './app/middlewares/log.middleware';
 import notfound from './app/middlewares/not-found.middleware';
@@ -37,48 +33,18 @@ app.use(
   }),
 );
 
-app.use(
-  session({
-    secret: config.session_secret,
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: config.database_url,
-      ttl: 60 * 60 * 24 * 30,
-    }),
-    cookie: {
-      secure: config.node_dev === 'production',
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24 * 30,
-    },
-  }),
-);
-
 // Log request middleware
 app.use(log);
 
-// Static file serving for uploads
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-
-// API routes
-app.use('/api', router);
-
-// Static file serving for frontend (SPA)
-app.use(express.static(path.join(__dirname, '../public/dist')));
-
-app.get(/.*/, (_req, res) => {
-  res.sendFile(path.join(__dirname, '../public/dist/index.html'));
-});
-
-// Health check endpoint for Vercel
+// Health check endpoint
 app.get('/health', (_req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Fallback for SPA routing - serves index.html for all unmatched routes
-app.use((_req, res) => {
-  res.sendFile(path.join(__dirname, '../public/dist', 'index.html'));
-});
+// API routes — this is an API-only server now. Uploaded files live on
+// Cloudinary and the frontend is a separately-deployed static site, so
+// there's no local /uploads static serving or SPA fallback here.
+app.use('/api', router);
 
 // Error handling middleware
 app.use(error);

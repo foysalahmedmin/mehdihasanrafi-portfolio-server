@@ -1,148 +1,40 @@
-import cluster from 'cluster';
-import http from 'http';
 import mongoose from 'mongoose';
-import os from 'os';
 import app from './app';
 import config from './app/config';
-import {
-  cacheClient,
-  initializeRedis,
-  pubClient,
-  subClient,
-} from './app/redis';
-import { initializeSocket } from './app/socket';
 
-let server: http.Server | null = null;
+// Serverless functions can be invoked while a previous invocation's
+// connection is still warm (the same container reused), so the connection
+// is cached on the module scope instead of reconnecting on every request.
+let connectionPromise: Promise<typeof mongoose> | null = null;
 
-// Start the server
-const main = async (): Promise<void> => {
-  try {
-    await mongoose.connect(config.database_url);
-    console.log(`✅ MongoDB connected - PID: ${process.pid}`);
-
-    try {
-      await initializeRedis();
-      console.log(`🔌 Redis initialized - PID: ${process.pid}`);
-    } catch (redisErr) {
-      console.warn(`⚠️ Redis setup failed - PID: ${process.pid}`, redisErr);
-    }
-
-    server = http.createServer(app);
-
-    try {
-      await initializeSocket(server);
-      console.log(`🔌 Socket.io initialized - PID: ${process.pid}`);
-    } catch (socketErr) {
-      console.warn(
-        `⚠️ Socket.io setup failed - PID: ${process.pid}`,
-        socketErr,
-      );
-    }
-
-    server.listen(config.port, () => {
-      console.log(`🚀 Worker ${process.pid} listening on port ${config.port}`);
+export const connectDB = (): Promise<typeof mongoose> => {
+  if (mongoose.connection.readyState === 1) {
+    return Promise.resolve(mongoose);
+  }
+  if (!connectionPromise) {
+    connectionPromise = mongoose.connect(config.database_url).catch((err) => {
+      // Let the next invocation retry instead of caching a failed connection.
+      connectionPromise = null;
+      throw err;
     });
-  } catch (error) {
-    console.error('❌ Error starting server:', error);
-    process.exit(1);
   }
+  return connectionPromise;
 };
 
-// Gracefully shuts down server and database connections.
-const shutdown = async (reason: string): Promise<void> => {
-  console.log(`🛑 Shutdown initiated: ${reason}`);
-  try {
-    // Disconnect MongoDB
-    await mongoose.disconnect();
-    console.log('✅ MongoDB disconnected');
+// Connects on module load so the first request of a cold start doesn't pay
+// the connection cost inside the request itself (and warm invocations reuse
+// the already-open connection via connectDB()'s cache above).
+connectDB()
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch((err) => console.error('❌ MongoDB connection failed:', err));
 
-    // Disconnect Redis cache
-    if (cacheClient.isOpen) {
-      await cacheClient.quit();
-      console.log('🔌 Redis (cache) disconnected');
-    }
-
-    // Disconnect Socket.io Redis clients
-    if (pubClient.isOpen) {
-      await pubClient.quit();
-      console.log('🔌 Redis (pub) disconnected');
-    }
-
-    if (subClient.isOpen) {
-      await subClient.quit();
-      console.log('🔌 Redis (sub) disconnected');
-    }
-
-    // Close HTTP server
-    if (server) {
-      server.close(() => {
-        console.log('🔒 HTTP server closed');
-        process.exit(0);
-      });
-
-      // Fallback if server doesn't close in time
-      setTimeout(() => {
-        console.error('⏱ Server shutdown timed out, forcing exit.');
-        process.exit(1);
-      }, 5000);
-    } else {
-      process.exit(0);
-    }
-  } catch (err) {
-    console.error('❌ Error during shutdown:', err);
-    process.exit(1);
-  }
-};
-
-// Handle termination signals for graceful shutdown
-process.on('SIGINT', () => shutdown('SIGINT (Ctrl+C)'));
-process.on('SIGTERM', () => shutdown('SIGTERM (system kill)'));
-process.on('SIGQUIT', () => shutdown('SIGQUIT (quit signal)'));
-
-// Handle unexpected errors and promise rejections
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-  shutdown('Unhandled Promise Rejection');
-});
-process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error);
-  shutdown('Uncaught Exception');
-});
-
-// Cluster
-const numCPUs = os.cpus().length;
-const workersToUse = Math.max(1, Math.floor(numCPUs * 0.75));
-
-if (config.cluster_enabled && cluster.isPrimary) {
-  console.log(`👑 Primary ${process.pid} is running`);
-  for (let i = 0; i < workersToUse; i++) {
-    cluster.fork();
-  }
-
-  let restartCount = 0;
-  const MAX_RESTARTS = 5;
-  const RESTART_WINDOW = 60000;
-  let firstRestartTime = Date.now();
-
-  cluster.on('exit', (worker) => {
-    const now = Date.now();
-
-    if (now - firstRestartTime > RESTART_WINDOW) {
-      // Reset restart window
-      firstRestartTime = now;
-      restartCount = 0;
-    }
-
-    if (restartCount < MAX_RESTARTS) {
-      console.warn(`⚰️ Worker ${worker.process.pid} died. Restarting...`);
-      cluster.fork();
-      restartCount++;
-    } else {
-      console.error(
-        `❌ Too many restarts (${restartCount}) in 1 minute. Not restarting further.`,
-      );
-    }
+// On Vercel, this module's default export (the Express app) is handed
+// directly to the Node serverless runtime — no .listen() here. Locally
+// (`pnpm start:dev` / `pnpm start`), start a normal HTTP server instead.
+if (!process.env.VERCEL) {
+  app.listen(config.port, () => {
+    console.log(`🚀 Server listening on port ${config.port}`);
   });
-} else {
-  main();
 }
+
+export default app;

@@ -31,14 +31,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@socket.io/redis-adapter": "^8.3.0",
     "bcrypt": "^6.0.0",
-    "connect-mongo": "^5.1.0",
+    "cloudinary": "^2.5.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.0.0",
     "express": "^5.1.0",
-    "express-session": "^1.18.1",
     "flattener-kit": "^1.0.1",
     "http-status": "^2.1.0",
     "jsonwebtoken": "^9.0.2",
@@ -47,8 +45,6 @@
     "mongoose": "^8.16.1",
     "multer": "^2.0.1",
     "nodemailer": "^7.0.4",
-    "redis": "^5.6.0",
-    "socket.io": "^4.8.1",
     "zod": "^3.25.67"
   },
   "devDependencies": {
@@ -56,7 +52,6 @@
     "@types/cookie-parser": "^1.4.9",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
-    "@types/express-session": "^1.18.2",
     "@types/http-status": "^1.1.2",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mime-types": "^3.0.1",
